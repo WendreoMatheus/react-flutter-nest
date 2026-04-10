@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  votes       Int      @default(0)
+  createdAt   DateTime @default(now())
+  voteRecords Vote[]
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+
+  @@unique([userId, postId])
+}

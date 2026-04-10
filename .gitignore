@@ -1,0 +1,10 @@
+# Evaluator files — DO NOT push to candidate repo
+voting-platform-answer-key.pdf
+voting-platform-scoring.xlsx
+evaluator-tools/
+
+# Nested clone (artifact)
+react-flutter-nest/
+
+# Claude Code
+.claude/

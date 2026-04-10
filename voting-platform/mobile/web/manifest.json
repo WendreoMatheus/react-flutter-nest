@@ -1,0 +1,11 @@
+{
+  "name": "Voting Platform",
+  "short_name": "VotingPlatform",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3F51B5",
+  "description": "Voting Platform — Flutter Web",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
