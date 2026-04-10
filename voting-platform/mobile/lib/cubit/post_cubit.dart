@@ -1,5 +1,5 @@
 // CHALLENGE — Flutter · post_cubit.dart
-// Fill in the TODOs and fix the BUGs.
+// Fix the BUGs and implement the TODOs. Run `flutter test` to check your progress.
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,16 +30,8 @@ class PostError extends PostState {
   List<Object?> get props => [message];
 }
 
+// BUG [1]: There is a state immutability problem in this class.
 class PostLoaded extends PostState {
-  // BUG [1]: `posts` is assigned directly from the constructor parameter,
-  // which means the cubit (or any caller) could mutate the list after it
-  // has been emitted. State emitted by a cubit MUST be immutable — if the
-  // underlying list is mutated in place, Bloc's state comparison may miss
-  // the change and widgets will not rebuild.
-  //
-  // Expected fix: wrap `posts` with `List.unmodifiable(posts)` inside the
-  // constructor body so external mutation is impossible. Note that this
-  // requires dropping the `const` qualifier on the constructor.
   final List<Post> posts;
   const PostLoaded(this.posts);
 
@@ -53,7 +45,6 @@ class PostCubit extends Cubit<PostState> {
   final PostRepository _repository;
   List<Post> _allPosts = const <Post>[];
 
-  // Already implemented — fetches posts and emits Loaded / Error.
   Future<void> loadPosts() async {
     emit(const PostLoading());
     try {
@@ -65,45 +56,19 @@ class PostCubit extends Cubit<PostState> {
     }
   }
 
-  // Already implemented (with a bug) — filters the loaded list by title.
+  // BUG [2]: The search filter has a case sensitivity problem.
   void search(String query) {
     if (_allPosts.isEmpty) return;
     if (query.isEmpty) {
       emit(PostLoaded(_allPosts));
       return;
     }
-    // BUG [2]: `String.contains` on the raw title + query is
-    // case-sensitive. Searching for "rust" will not match a post titled
-    // "Rust should be the default for new CLIs". Lower-case both sides
-    // before comparing:
-    //
-    //   final needle = query.toLowerCase();
-    //   final filtered = _allPosts
-    //       .where((p) => p.title.toLowerCase().contains(needle))
-    //       .toList();
     final filtered = _allPosts.where((p) => p.title.contains(query)).toList();
     emit(PostLoaded(filtered));
   }
 
-  // TODO [2]: Implement `vote(String postId)`.
-  //
-  // Requirements (optimistic update + rollback on error):
-  //  1. Guard: if the current state is NOT `PostLoaded`, return early.
-  //     There is nothing to update if we haven't loaded any posts yet.
-  //  2. Capture the current state into a local `previous` variable. You
-  //     will re-emit it if the network call fails.
-  //  3. Build a new list of posts where the post with the matching
-  //     `postId` has its votes incremented by 1. Use the `copyWith` you
-  //     implemented in `Post` (TODO [1] in post.dart) to produce the new
-  //     Post — do NOT mutate the existing Post instance.
-  //  4. Emit `PostLoaded(newList)` to update the UI optimistically.
-  //  5. Call `await _repository.vote(postId)` to tell the backend. If it
-  //     throws, emit `previous` to roll back the optimistic update.
-  //
-  // Do not reload the full list on success — the optimistic state is
-  // correct and the backend has already been updated.
+  // TODO [2]: Implement optimistic vote with rollback on error.
   Future<void> vote(String postId) async {
-    // TODO [2]: implement me
     throw UnimplementedError('PostCubit.vote');
   }
 }

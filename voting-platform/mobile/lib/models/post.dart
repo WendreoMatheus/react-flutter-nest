@@ -1,5 +1,5 @@
 // CHALLENGE — Flutter · post.dart
-// Fill in the TODOs and fix the BUGs.
+// Fix the BUGs and implement the TODOs. Run `flutter test` to check your progress.
 
 import 'package:equatable/equatable.dart';
 
@@ -16,7 +16,6 @@ class Post extends Equatable {
     required this.votes,
   });
 
-  // Already implemented — parses a JSON map coming from the NestJS backend.
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['id'] as String,
@@ -26,27 +25,13 @@ class Post extends Equatable {
     );
   }
 
-  // TODO [1]: Implement `copyWith`.
-  //
-  // Requirements:
-  //  - Every parameter is OPTIONAL (nullable). If the caller does not pass
-  //    a value for a field, the new Post must keep the current value for
-  //    that field.
-  //  - Use the `??` operator to fall back to `this.<field>` when the
-  //    argument is null. Example for `title`: `title: title ?? this.title`.
-  //  - Return a brand new `Post` instance — Post is immutable, do NOT
-  //    mutate `this`.
-  //
-  // This method is used by PostCubit to produce an updated state when a
-  // user votes (the cubit calls `post.copyWith(votes: post.votes + 1)`
-  // as part of its optimistic update).
+  // TODO [1]: Implement copyWith.
   Post copyWith({
     String? id,
     String? title,
     String? description,
     int? votes,
   }) {
-    // TODO [1]: implement me
     throw UnimplementedError('Post.copyWith');
   }
 
