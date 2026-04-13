@@ -1,16 +1,8 @@
 /// CHALLENGE TESTS — Flutter · post_cubit_test.dart
 ///
-/// These tests validate the expected behaviour of PostCubit once every
-/// BUG is fixed and every TODO is implemented.
-///
 /// Run:  flutter test test/cubit/post_cubit_test.dart
 ///
-/// Status BEFORE fixing the challenge file:
-///   - BUG-related tests  → FAIL
-///   - TODO-related tests → FAIL
-///
-/// Status AFTER fixing the challenge file:
-///   - All tests → PASS ✅
+/// All tests FAIL before fixes. All tests PASS after fixes.
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,9 +12,6 @@ import 'package:voting_platform_mobile/cubit/post_cubit.dart';
 import 'package:voting_platform_mobile/models/post.dart';
 import 'package:voting_platform_mobile/repository/post_repository.dart';
 
-// ---------------------------------------------------------------------------
-// Mock
-// ---------------------------------------------------------------------------
 class MockPostRepository extends Mock implements PostRepository {}
 
 void main() {
@@ -38,9 +27,6 @@ void main() {
     mockRepository = MockPostRepository();
   });
 
-  // =========================================================================
-  // loadPosts — already implemented (should work as-is)
-  // =========================================================================
   group('loadPosts', () {
     blocTest<PostCubit, PostState>(
       'emits [PostLoading, PostLoaded] on success',
@@ -69,11 +55,8 @@ void main() {
     );
   });
 
-  // =========================================================================
-  // FIX BUG [1] — PostLoaded.posts must be immutable (List.unmodifiable)
-  // =========================================================================
-  group('BUG [1]: PostLoaded immutability', () => {
-    test('PostLoaded.posts should be unmodifiable', () {
+  group('BUG [1]', () => {
+    test('PostLoaded.posts should not allow external mutation', () {
       final state = PostLoaded(posts);
 
       expect(
@@ -81,18 +64,13 @@ void main() {
           const Post(id: 'x', title: 'x', description: 'x', votes: 0),
         ),
         throwsA(isA<UnsupportedError>()),
-        reason: 'PostLoaded.posts must be wrapped with List.unmodifiable '
-            'so that external code cannot mutate emitted state.',
       );
     });
   });
 
-  // =========================================================================
-  // FIX BUG [2] — search must be case-insensitive
-  // =========================================================================
-  group('BUG [2]: search — case insensitive', () {
+  group('BUG [2]', () {
     blocTest<PostCubit, PostState>(
-      'searching "rust" (lowercase) should find "Rust should be the default"',
+      'search should be case-insensitive (lowercase query)',
       build: () {
         when(() => mockRepository.fetchAll()).thenAnswer((_) async => posts);
         return PostCubit(mockRepository);
@@ -101,18 +79,14 @@ void main() {
         await cubit.loadPosts();
         cubit.search('rust');
       },
-      skip: 2, // skip PostLoading + PostLoaded from loadPosts
+      skip: 2,
       expect: () => [
-        isA<PostLoaded>().having(
-          (s) => s.posts.length,
-          'filtered count',
-          1,
-        ),
+        isA<PostLoaded>().having((s) => s.posts.length, 'filtered count', 1),
       ],
     );
 
     blocTest<PostCubit, PostState>(
-      'searching "SQLITE" (uppercase) should find "SQLite in production"',
+      'search should be case-insensitive (uppercase query)',
       build: () {
         when(() => mockRepository.fetchAll()).thenAnswer((_) async => posts);
         return PostCubit(mockRepository);
@@ -123,11 +97,7 @@ void main() {
       },
       skip: 2,
       expect: () => [
-        isA<PostLoaded>().having(
-          (s) => s.posts.length,
-          'filtered count',
-          1,
-        ),
+        isA<PostLoaded>().having((s) => s.posts.length, 'filtered count', 1),
       ],
     );
 
@@ -142,7 +112,7 @@ void main() {
         cubit.search('rust');
         cubit.search('');
       },
-      skip: 2, // skip PostLoading + PostLoaded from loadPosts
+      skip: 2,
       expect: () => [
         isA<PostLoaded>().having((s) => s.posts.length, 'filtered', greaterThan(0)),
         isA<PostLoaded>().having((s) => s.posts.length, 'all', 3),
@@ -150,12 +120,9 @@ void main() {
     );
   });
 
-  // =========================================================================
-  // TODO [2] — vote(postId) — optimistic update + rollback
-  // =========================================================================
-  group('TODO [2]: vote — optimistic update', () {
+  group('TODO [2]: vote', () {
     blocTest<PostCubit, PostState>(
-      'should optimistically increment the vote count for the given post',
+      'should optimistically update the vote count',
       build: () {
         when(() => mockRepository.fetchAll()).thenAnswer((_) async => posts);
         when(() => mockRepository.vote('p1')).thenAnswer(
@@ -167,18 +134,18 @@ void main() {
         await cubit.loadPosts();
         await cubit.vote('p1');
       },
-      skip: 2, // skip PostLoading + PostLoaded from loadPosts
+      skip: 2,
       expect: () => [
         isA<PostLoaded>().having(
           (s) => s.posts.firstWhere((p) => p.id == 'p1').votes,
-          'optimistic votes',
+          'votes',
           43,
         ),
       ],
     );
 
     blocTest<PostCubit, PostState>(
-      'should rollback to the previous state when the API call fails',
+      'should rollback when the API call fails',
       build: () {
         when(() => mockRepository.fetchAll()).thenAnswer((_) async => posts);
         when(() => mockRepository.vote('p1')).thenThrow(Exception('fail'));
@@ -188,15 +155,13 @@ void main() {
         await cubit.loadPosts();
         await cubit.vote('p1');
       },
-      skip: 2, // skip PostLoading + PostLoaded from loadPosts
+      skip: 2,
       expect: () => [
-        // First: optimistic update (votes = 43)
         isA<PostLoaded>().having(
           (s) => s.posts.firstWhere((p) => p.id == 'p1').votes,
           'optimistic',
           43,
         ),
-        // Second: rollback (votes = 42)
         isA<PostLoaded>().having(
           (s) => s.posts.firstWhere((p) => p.id == 'p1').votes,
           'rollback',
@@ -206,12 +171,11 @@ void main() {
     );
 
     blocTest<PostCubit, PostState>(
-      'should do nothing if the current state is not PostLoaded',
+      'should do nothing if posts are not loaded yet',
       build: () {
         return PostCubit(mockRepository);
       },
       act: (cubit) async {
-        // State is PostInitial — vote should be a no-op
         await cubit.vote('p1');
       },
       expect: () => <PostState>[],

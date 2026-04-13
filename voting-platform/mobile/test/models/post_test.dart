@@ -1,15 +1,8 @@
 /// CHALLENGE TESTS — Flutter · post_test.dart
 ///
-/// These tests validate the expected behaviour of Post.copyWith once
-/// TODO [1] is implemented.
-///
 /// Run:  flutter test test/models/post_test.dart
 ///
-/// Status BEFORE fixing the challenge file:
-///   - All tests → FAIL (throws UnimplementedError)
-///
-/// Status AFTER fixing the challenge file:
-///   - All tests → PASS ✅
+/// All tests FAIL before fixes. All tests PASS after fixes.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:voting_platform_mobile/models/post.dart';
